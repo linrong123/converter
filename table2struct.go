@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-//map for converting mysql type to golang types
+// map for converting mysql type to golang types
 var typeForMysqlToGo = map[string]string{
 	"int":                "int64",
 	"integer":            "int64",
@@ -48,6 +49,7 @@ var typeForMysqlToGo = map[string]string{
 	"decimal":            "float64",
 	"binary":             "string",
 	"varbinary":          "string",
+	"json":               "string",
 }
 
 type Table2Struct struct {
