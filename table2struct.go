@@ -49,7 +49,7 @@ var typeForMysqlToGo = map[string]string{
 	"decimal":            "float64",
 	"binary":             "string",
 	"varbinary":          "string",
-	"json":               "interface{}",
+	"json":               "json",
 }
 
 type Table2Struct struct {
@@ -65,6 +65,7 @@ type Table2Struct struct {
 	packageName    string // 生成struct的包名(默认为空的话, 则取名为: package model)
 	tagKey         string // tag字段的key值,默认是orm
 	dateToTime     bool   // 是否将 date相关字段转换为 time.Time,默认否
+	jsonType       string //json的对应类型，默认和字段一样
 }
 
 type T2tConfig struct {
@@ -188,6 +189,13 @@ func (t *Table2Struct) Run() error {
 			var clumnComment string
 			if v.ColumnComment != "" {
 				clumnComment = fmt.Sprintf(" // %s", v.ColumnComment)
+			}
+			if v.Type == "json" {
+				if t.jsonType == "" {
+					v.Type = v.ColumnName
+				} else {
+					v.Type = t.jsonType
+				}
 			}
 			structContent += fmt.Sprintf("%s%s %s %s%s\n",
 				tab(depth), v.ColumnName, v.Type, v.Tag, clumnComment)
@@ -320,6 +328,11 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 		}
 		if t.tagKey == "" {
 			t.tagKey = "orm"
+		}
+		if t.tagKey == "gorm" {
+			if col.Type == "json" {
+				col.Tag = col.Tag + ";serializer:json"
+			}
 		}
 		if t.enableJsonTag {
 			//col.Json = fmt.Sprintf("`json:\"%s\" %s:\"%s\"`", col.Json, t.config.TagKey, col.Json)
