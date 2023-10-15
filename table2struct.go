@@ -66,6 +66,7 @@ type Table2Struct struct {
 	tagKey         string // tag字段的key值,默认是orm
 	dateToTime     bool   // 是否将 date相关字段转换为 time.Time,默认否
 	jsonType       string //json的对应类型，默认和字段一样
+	columnTag      string //字段tag
 }
 
 type T2tConfig struct {
@@ -118,6 +119,15 @@ func (t *Table2Struct) Table(tab string) *Table2Struct {
 
 func (t *Table2Struct) Prefix(p string) *Table2Struct {
 	t.prefix = p
+	return t
+}
+
+func (t *Table2Struct) JsonType(j string) *Table2Struct {
+	t.jsonType = j
+	return t
+}
+func (t *Table2Struct) ColumnTag(j string) *Table2Struct {
+	t.columnTag = j
 	return t
 }
 
@@ -301,7 +311,11 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 		}
 
 		//col.Json = strings.ToLower(col.ColumnName)
-		col.Tag = col.ColumnName
+		if t.tagKey == "" {
+			t.tagKey = "orm"
+		}
+		t.getColumnTag()
+		col.Tag = t.columnTag + col.ColumnName
 		col.ColumnComment = col.ColumnComment
 		col.ColumnName = t.camelCase(col.ColumnName)
 		col.Type = typeForMysqlToGo[col.Type]
@@ -326,9 +340,7 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 			//} else {
 			//}
 		}
-		if t.tagKey == "" {
-			t.tagKey = "orm"
-		}
+
 		if t.tagKey == "gorm" {
 			if col.Type == "json" {
 				col.Tag = col.Tag + ";serializer:json"
@@ -375,4 +387,15 @@ func (t *Table2Struct) camelCase(str string) string {
 }
 func tab(depth int) string {
 	return strings.Repeat("\t", depth)
+}
+
+func (t *Table2Struct) getColumnTag() {
+	switch t.tagKey {
+	case "gorm":
+		t.columnTag = "column:"
+	case "sqlx":
+		t.columnTag = "db:"
+	default:
+		t.columnTag = ""
+	}
 }
