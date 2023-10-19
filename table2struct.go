@@ -317,9 +317,9 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 		t.getColumnTag()
 		col.Tag = t.columnTag + col.ColumnName
 		col.ColumnComment = col.ColumnComment
+		jsonTag := col.ColumnName
 		col.ColumnName = t.camelCase(col.ColumnName)
 		col.Type = typeForMysqlToGo[col.Type]
-		jsonTag := col.Tag
 		// 字段首字母本身大写, 是否需要删除tag
 		if t.config.RmTagIfUcFirsted &&
 			col.ColumnName[0:1] == strings.ToUpper(col.ColumnName[0:1]) {
@@ -328,7 +328,7 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 			// 是否需要将tag转换成小写
 			if t.config.TagToLower {
 				col.Tag = strings.ToLower(col.Tag)
-				jsonTag = col.Tag
+				jsonTag = strings.ToLower(jsonTag)
 			}
 
 			if t.config.JsonTagToHump {
